@@ -108,3 +108,44 @@ blocked_on:                # 僅條件式任務需要
 |---|---|---|
 | slo-sentinel | T001–T020（含 2 張 blocked_on） | Go 單 binary + UI；四個感測家族共用 ETA 引擎 |
 | ai-oncall | T001–T019 | gate(Go)/core(Python)/ui 三服務；F1–F21 |
+
+## 七、配套：task-audit skill（完成度誠實稽核）
+
+> 位置：`~/.pi/agent/skills/task-audit/SKILL.md`（含共用 `scripts/validate_tasks.py`）
+
+拆完、跑完之後的第三步——對 status:done 的任務書逐條驗證：
+
+```
+/skill:task-audit slo-sentinel
+```
+
+五步流程：結構驗證（validate_tasks.py）→ 逐條三態判定（✅達成打勾／⬜未達成保留／🔀部分）→
+缺口分流處理（可快補的直接補＋commit）→ 執行紀錄附註 → ✅/⬜ 統計報告。
+
+核心紀律：
+1. 打勾必須能指出測試名稱／程式碼位置／產出檔案
+2. 多項核心未達成 → 任務書降級 in-progress，不得維持 done
+3. 快速可補的缺口直接補實作＋補測試，獨立 commit
+
+實測成果：slo-sentinel 首輪稽核抓出 daemon 未接熱載入、UI 缺四頁等真實缺口，
+最終統計 ✅92 ⬜38（含 8 項條件式任務）。
+
+## 八、配套：write-readme skill（證據導向 README 產生）
+
+> 位置：`~/.pi/agent/skills/write-readme/SKILL.md`
+
+```
+/skill:write-readme slo-sentinel
+```
+
+五階段流程：Product Understanding → Architecture Understanding →
+Spec vs Implementation 比對表 → Information Gaps → Final README。
+
+核心紀律：
+1. 「目前實際行為」以 source code 為準；與規格不一致時明確指出，不偷偷選邊
+2. 無法確認的資訊標記 [NEEDS VERIFICATION]，不自行填空——完整與正確衝突時優先正確
+3. 未實作功能寫進 Limitations，不包裝成特色
+4. 完稿後有自審清單（command/env/API 是否真實存在等）
+5. 任務書的執行紀錄（勾選狀態）可作為「哪些功能真的完成」的佐證
+
+實測：slo-sentinel 的 README 即以此流程重寫。
